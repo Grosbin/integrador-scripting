@@ -1,0 +1,4 @@
+id_transaccion,fecha_emision,nombre,correo,telefono,direccion,ciudad,cantidad,monto,pago,estado_pago,ip,timestamp,observaciones
+894772,2025-07-17,Purificación Rivero Arjona,ariadna76@example.com,+34 977 59 38 24,"Paseo de Julieta Collado 21, Lugo, 37687",Huelva,7,10306,Pago parcial,Fallido,192.168.125.104,2025-07-17 20:31:18,"""Promoción aplicada"""
+475441,2025-07-17,Estela Fuente Tapia,qvazquez@example.org,+34 711 60 97 53,"Camino Iván Gómez 88, Ávila, 21975",Badajoz,10,33631,Pago completo,Exitoso,192.168.194.25,2025-07-17 20:31:18,"""Compra regular"""
+658433,2025-07-17,Leoncio Esteban Casanovas Méndez,nereamaestre@example.com,+34824 965 934,"Calle Emperatriz Juan 21, Burgos, 03532",Tarragona,10,24262,Pago parcial,Exitoso,192.168.19.231,2025-07-17 20:31:18,"""Cliente VIP"""

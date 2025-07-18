@@ -1,0 +1,5 @@
+2025-07-17 20:36:18 [INFO] === INICIO DE GENERACIÓN DE FACTURAS ===
+2025-07-17 20:36:18 [INFO] Archivo CSV: datos/compras_lote_20250717_203546.csv
+2025-07-17 20:36:18 [INFO] Plantilla: plantilla_factura_IRSI.tex
+2025-07-17 20:36:18 [INFO] Directorios creados: logs, facturas_pdf
+2025-07-17 20:36:18 [ERROR] pdflatex no está instalado o no está en PATH
