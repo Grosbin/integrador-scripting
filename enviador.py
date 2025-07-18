@@ -27,16 +27,16 @@ SMTP_CONFIG = {
 }
 
 # Archivos de configuración
-PENDING_FILE = 'pendientes_envio.csv'
-LOG_ENVIOS = 'log_envios.csv'
-LOG_DIARIO = 'log_diario.log'
+PENDING_FILE = 'temp/pendientes_envio.csv'
+LOG_ENVIOS = 'logs/envios/log_envios.csv'
+LOG_DIARIO = 'logs/log_diario.log'
 
 # Configurar logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(message)s',
     handlers=[
-        logging.FileHandler('enviador.log', encoding='utf-8'),
+        logging.FileHandler('logs/envios/enviador.log', encoding='utf-8'),
         logging.StreamHandler()
     ]
 )
@@ -318,7 +318,7 @@ ARCHIVOS GENERADOS:
 """
         
         # Guardar reporte
-        report_file = f"reporte_diario_{datetime.datetime.now().strftime('%Y%m%d')}.txt"
+        report_file = f"logs/reportes/reporte_diario_{datetime.datetime.now().strftime('%Y%m%d')}.txt"
         with open(report_file, 'w', encoding='utf-8') as f:
             f.write(report)
         

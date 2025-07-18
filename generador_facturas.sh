@@ -9,8 +9,8 @@ set -e  # Terminar si hay errores
 TEMPLATE_FILE="plantilla_factura_IRSI.tex"
 LOG_DIR="logs"
 PDF_DIR="facturas_pdf"
-PENDING_FILE="pendientes_envio.csv"
-DAILY_LOG="log_diario.log"
+PENDING_FILE="temp/pendientes_envio.csv"
+DAILY_LOG="logs/log_diario.log"
 
 # Colores para output
 RED='\033[0;31m'
@@ -96,22 +96,37 @@ substitute_placeholders() {
     
     # Copiar plantilla a archivo temporal
     cp "$template_file" "$output_file"
+
+    # sed -i "s/{id_transaccion}/$id_transaccion/g" "$output_file"
+    # sed -i "s/{fecha_emision}/$fecha_emision/g" "$output_file"
+    # sed -i "s/{nombre}/$nombre/g" "$output_file"
+    # sed -i "s/{correo}/$correo/g" "$output_file"
+    # sed -i "s/{telefono}/$telefono/g" "$output_file"
+    # sed -i "s/{direccion}/$direccion/g" "$output_file"
+    # sed -i "s/{ciudad}/$ciudad/g" "$output_file"
+    # sed -i "s/{cantidad}/$cantidad/g" "$output_file"
+    # sed -i "s/{monto}/$monto/g" "$output_file"
+    # sed -i "s/{pago}/$pago/g" "$output_file"
+    # sed -i "s/{estado_pago}/$estado_pago/g" "$output_file"
+    # sed -i "s/{ip}/$ip/g" "$output_file"
+    # sed -i "s/{timestamp}/$timestamp/g" "$output_file"
+    # sed -i "s/{observaciones}/$observaciones/g" "$output_file"
     
-    # Sustituir cada placeholder individualmente usando sed
-    sed -i "s/{id_transaccion}/$id_transaccion/g" "$output_file"
-    sed -i "s/{fecha_emision}/$fecha_emision/g" "$output_file"
-    sed -i "s/{nombre}/$nombre/g" "$output_file"
-    sed -i "s/{correo}/$correo/g" "$output_file"
-    sed -i "s/{telefono}/$telefono/g" "$output_file"
-    sed -i "s/{direccion}/$direccion/g" "$output_file"
-    sed -i "s/{ciudad}/$ciudad/g" "$output_file"
-    sed -i "s/{cantidad}/$cantidad/g" "$output_file"
-    sed -i "s/{monto}/$monto/g" "$output_file"
-    sed -i "s/{pago}/$pago/g" "$output_file"
-    sed -i "s/{estado_pago}/$estado_pago/g" "$output_file"
-    sed -i "s/{ip}/$ip/g" "$output_file"
-    sed -i "s/{timestamp}/$timestamp/g" "$output_file"
-    sed -i "s/{observaciones}/$observaciones/g" "$output_file"
+    # Sustituir cada placeholder individualmente usando sed (compatible con macOS)
+    sed -i '' "s/{id_transaccion}/$id_transaccion/g" "$output_file"
+    sed -i '' "s/{fecha_emision}/$fecha_emision/g" "$output_file"
+    sed -i '' "s/{nombre}/$nombre/g" "$output_file"
+    sed -i '' "s/{correo}/$correo/g" "$output_file"
+    sed -i '' "s/{telefono}/$telefono/g" "$output_file"
+    sed -i '' "s/{direccion}/$direccion/g" "$output_file"
+    sed -i '' "s/{ciudad}/$ciudad/g" "$output_file"
+    sed -i '' "s/{cantidad}/$cantidad/g" "$output_file"
+    sed -i '' "s/{monto}/$monto/g" "$output_file"
+    sed -i '' "s/{pago}/$pago/g" "$output_file"
+    sed -i '' "s/{estado_pago}/$estado_pago/g" "$output_file"
+    sed -i '' "s/{ip}/$ip/g" "$output_file"
+    sed -i '' "s/{timestamp}/$timestamp/g" "$output_file"
+    sed -i '' "s/{observaciones}/$observaciones/g" "$output_file"
 }
 
 # Función para compilar LaTeX a PDF

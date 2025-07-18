@@ -273,9 +273,9 @@ REPORTS_DIR="reportes"
 
 # Archivos
 TEMPLATE_FILE="plantilla_factura_IRSI.tex"
-PENDING_FILE="pendientes_envio.csv"
-DAILY_LOG="log_diario.log"
-SHIPMENT_LOG="log_envios.csv"
+PENDING_FILE="temp/pendientes_envio.csv"
+DAILY_LOG="logs/log_diario.log"
+SHIPMENT_LOG="logs/envios/log_envios.csv"
 
 # Email del administrador
 ADMIN_EMAIL="admin@mercadoirsi.com"

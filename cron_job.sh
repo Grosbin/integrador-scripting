@@ -98,11 +98,11 @@ fi
 # Resumen final
 log_message "=== RESUMEN DE EJECUCIÓN ==="
 log_message "Facturas generadas: $(ls facturas_pdf/*.pdf 2>/dev/null | wc -l)"
-log_message "Pendientes de envío: $(wc -l < pendientes_envio.csv 2>/dev/null || echo 0)"
+log_message "Pendientes de envío: $(wc -l < temp/pendientes_envio.csv 2>/dev/null || echo 0)"
 
-if [[ -f "log_envios.csv" ]]; then
-    exitosos=$(awk -F',' '$3=="exitoso" {count++} END {print count+0}' log_envios.csv)
-    fallidos=$(awk -F',' '$3=="fallido" {count++} END {print count+0}' log_envios.csv)
+if [[ -f "logs/envios/log_envios.csv" ]]; then
+    exitosos=$(awk -F',' '$3=="exitoso" {count++} END {print count+0}' logs/envios/log_envios.csv)
+    fallidos=$(awk -F',' '$3=="fallido" {count++} END {print count+0}' logs/envios/log_envios.csv)
     log_message "Envíos exitosos: $exitosos"
     log_message "Envíos fallidos: $fallidos"
 fi
