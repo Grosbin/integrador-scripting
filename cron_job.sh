@@ -45,17 +45,13 @@ execute_step() {
     
     log_message "Iniciando: $step_name"
     
-    # Ejecutar comando con timeout
-    if timeout "$timeout_seconds" bash -c "$command"; then
+    # Ejecutar comando (sin timeout en macOS por defecto)
+    if bash -c "$command"; then
         log_message "✅ $step_name completado exitosamente"
         return 0
     else
         local exit_code=$?
-        if [[ $exit_code -eq 124 ]]; then
-            log_message "❌ $step_name - TIMEOUT después de $timeout_seconds segundos"
-        else
-            log_message "❌ $step_name - Error con código: $exit_code"
-        fi
+        log_message "❌ $step_name - Error con código: $exit_code"
         return $exit_code
     fi
 }
@@ -63,7 +59,7 @@ execute_step() {
 # PASO 1: Generar datos de compras (opcional, solo si no hay archivos recientes)
 newest_csv=$(ls -t datos/compras_lote_*.csv 2>/dev/null | head -1)
 if [[ -z "$newest_csv" ]] || [[ $(find "$newest_csv" -mtime +1 2>/dev/null) ]]; then
-    execute_step "Generación de Compras" "python3 generador_compras.py 15" 120
+    execute_step "Generación de Compras" "python3 generador_compras.py 3" 120
     if [[ $? -ne 0 ]]; then
         log_message "ERROR: Fallo en generación de compras, abortando"
         exit 1
@@ -79,21 +75,18 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
-# Esperar 1 hora antes del envío (simular diferencia horaria)
-# En producción, esto se manejaría con cron programado para diferentes horas
-if [[ "${SKIP_WAIT:-false}" != "true" ]]; then
-    log_message "INFO: Esperando 1 hora antes del envío de correos..."
-    sleep 3600  # 1 hora
-fi
+# Envío inmediato de correos (sin espera)
+log_message "INFO: Envío inmediato de correos..."
 
 # PASO 3: Enviar correos
 execute_step "Envío de Correos" "python3 enviador.py" 1800
 envio_exit_code=$?
 
 # PASO 4: Procesar empleados temporales (si hay archivo)
-if [[ -f "datos/empleados.csv" ]]; then
-    execute_step "Gestión de Usuarios" "powershell -File usuarios.ps1" 300
-fi
+# TEMPORALMENTE DESHABILITADO - PowerShell no disponible en macOS
+# if [[ -f "datos/empleados.csv" ]]; then
+#     execute_step "Gestión de Usuarios" "powershell -File usuarios.ps1" 300
+# fi
 
 # Resumen final
 log_message "=== RESUMEN DE EJECUCIÓN ==="
