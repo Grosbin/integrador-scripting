@@ -35,17 +35,17 @@ show_progress() {
 
 # Función para mostrar éxito
 show_success() {
-    echo -e "\r${GREEN}✅ $1${NC}"
+    echo -e "\r${GREEN}$1${NC}"
 }
 
 # Función para mostrar error
 show_error() {
-    echo -e "\r${RED}❌ $1${NC}"
+    echo -e "\r${RED}ERROR: $1${NC}"
 }
 
 # Función para mostrar advertencia
 show_warning() {
-    echo -e "${YELLOW}⚠️  $1${NC}"
+    echo -e "${YELLOW}WARNING: $1${NC}"
 }
 
 # Verificar sistema operativo
@@ -148,9 +148,9 @@ install_python_modules() {
     
     for module in "${modules[@]}"; do
         if python3 -c "import $module" 2>/dev/null; then
-            echo "  ✓ $module ya instalado"
+            echo "  $module ya instalado"
         else
-            echo "  📦 Instalando $module..."
+            echo "  Instalando $module..."
             pip3 install "$module" --user
         fi
     done
@@ -295,9 +295,12 @@ generate_test_data() {
     show_progress 7 8 "Generando datos de prueba"
     
     if [[ -f "generador_compras.py" ]]; then
-        cd datos 2>/dev/null || mkdir -p datos && cd datos
-        python3 ../generador_compras.py 5 > /dev/null 2>&1
-        cd ..
+        # Asegurar que el directorio datos existe
+        mkdir -p datos
+        
+        # Generar datos desde el directorio raíz
+        python3 generador_compras.py 5 > /dev/null 2>&1
+        
         show_success "Datos de prueba generados"
     else
         show_warning "generador_compras.py no encontrado"
@@ -315,32 +318,32 @@ verify_installation() {
     
     for file in "${required_files[@]}"; do
         if [[ -f "$file" ]]; then
-            echo "  ✓ $file"
+            echo "  $file"
         else
-            echo "  ✗ $file - FALTANTE"
+            echo "  FALTANTE: $file"
             ((errors++))
         fi
     done
     
     # Verificar comandos
     if command -v python3 &> /dev/null; then
-        echo "  ✓ Python 3"
+        echo "  Python 3"
     else
-        echo "  ✗ Python 3"
+        echo "  FALTANTE: Python 3"
         ((errors++))
     fi
     
     if command -v pdflatex &> /dev/null; then
-        echo "  ✓ pdflatex"
+        echo "  pdflatex"
     else
-        echo "  ⚠ pdflatex (opcional)"
+        echo "  WARNING: pdflatex (opcional)"
     fi
     
     # Verificar módulos Python
     if python3 -c "import faker" 2>/dev/null; then
-        echo "  ✓ Módulo faker"
+        echo "  Modulo faker"
     else
-        echo "  ✗ Módulo faker"
+        echo "  FALTANTE: Modulo faker"
         ((errors++))
     fi
     
@@ -355,7 +358,7 @@ verify_installation() {
 
 # Mostrar siguiente pasos
 show_next_steps() {
-    echo -e "\n${GREEN}🎉 INSTALACIÓN COMPLETADA${NC}\n"
+    echo -e "\n${GREEN}INSTALACION COMPLETADA${NC}\n"
     
     echo -e "${BLUE}PRÓXIMOS PASOS:${NC}"
     echo "1. Configurar credenciales SMTP en config_smtp.py"
@@ -368,11 +371,11 @@ show_next_steps() {
     echo "   ${YELLOW}powershell configurar_tareas_windows.ps1${NC} (Windows)"
     echo ""
     echo -e "${BLUE}ARCHIVOS IMPORTANTES:${NC}"
-    echo "📄 config_smtp.py - Configuración de correo"
-    echo "📄 config.sh - Configuración general"
-    echo "📁 datos/ - Archivos CSV generados"
-    echo "📁 facturas_pdf/ - PDFs generados"
-    echo "📁 logs/ - Archivos de log"
+    echo "config_smtp.py - Configuracion de correo"
+    echo "config.sh - Configuracion general"
+    echo "datos/ - Archivos CSV generados"
+    echo "facturas_pdf/ - PDFs generados"
+    echo "logs/ - Archivos de log"
     echo ""
     echo -e "${BLUE}DOCUMENTACIÓN:${NC}"
     echo "Para más información, consulte los comentarios en cada archivo."
@@ -399,14 +402,14 @@ main() {
         show_next_steps
         exit 0
     else
-        echo -e "\n${RED}❌ Instalación completada con errores${NC}"
+        echo -e "\n${RED}ERROR: Instalacion completada con errores${NC}"
         echo "Revise los mensajes anteriores y corrija los problemas."
         exit 1
     fi
 }
 
 # Manejo de señales
-trap 'echo -e "\n${RED}❌ Instalación interrumpida${NC}"; exit 130' SIGINT SIGTERM
+trap 'echo -e "\n${RED}ERROR: Instalacion interrumpida${NC}"; exit 130' SIGINT SIGTERM
 
 # Ejecutar instalación
 main "$@"

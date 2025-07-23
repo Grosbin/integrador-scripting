@@ -47,11 +47,11 @@ execute_step() {
     
     # Ejecutar comando (sin timeout en macOS por defecto)
     if bash -c "$command"; then
-        log_message "✅ $step_name completado exitosamente"
+        log_message "$step_name completado exitosamente"
         return 0
     else
         local exit_code=$?
-        log_message "❌ $step_name - Error con código: $exit_code"
+        log_message "ERROR: $step_name - Error con codigo: $exit_code"
         return $exit_code
     fi
 }

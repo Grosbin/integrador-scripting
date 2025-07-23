@@ -255,10 +255,10 @@ main() {
         
         if process_invoice "$line" "$total_lines"; then
             ((successful++))
-            echo -e "${GREEN}✅ Factura generada exitosamente${NC}"
+            echo -e "${GREEN}Factura generada exitosamente${NC}"
         else
             ((failed++))
-            echo -e "${RED}❌ Error generando factura${NC}"
+            echo -e "${RED}Error generando factura${NC}"
         fi
         
     done < "$csv_file"
@@ -283,7 +283,7 @@ main() {
         local total_monto=$(awk -F',' 'NR>1 {sum += $9} END {print sum}' "$csv_file")
         local total_pagos_completos=$(awk -F',' 'NR>1 && $10=="Pago completo" {count++} END {print count+0}' "$csv_file")
         
-        log_message "INFO" "Monto total procesado: ₡$total_monto"
+        log_message "INFO" "Monto total procesado: L$total_monto"
         log_message "INFO" "Pagos completos: $total_pagos_completos"
     fi
     

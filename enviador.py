@@ -382,7 +382,7 @@ class ReportGenerator:
             with open(self.path_config.log_diario, 'r', encoding='utf-8') as f:
                 for line in f:
                     if 'Monto total procesado' in line:
-                        match = re.search(r'₡(\d+)', line)
+                        match = re.search(r'L(\d+)', line)
                         if match:
                             stats['total_vendido'] = int(match.group(1))
                     elif 'Pagos completos' in line:
@@ -407,7 +407,7 @@ ENVÍO DE CORREOS:
 - Tasa de éxito: {success_rate:.1f}%
 
 VENTAS:
-- Total vendido: ₡{stats['total_vendido']:,}
+- Total vendido: L{stats['total_vendido']:,}
 - Pagos completos: {stats['pagos_completos']}
 
 ARCHIVOS GENERADOS:
@@ -536,12 +536,12 @@ class EmailProcessor:
         success, result = self.email_sender.send_email(message, email)
         
         if success:
-            logging.info(f"✅ Enviado exitosamente: {pdf_path} -> {email}")
+            logging.info(f"Enviado exitosamente: {pdf_path} -> {email}")
             self.log_manager.log_shipment(pdf_path, email, "exitoso")
             successful_rows.append(row_num)
             return True
         else:
-            logging.error(f"❌ Error enviando: {pdf_path} -> {email} - {result}")
+            logging.error(f"Error enviando: {pdf_path} -> {email} - {result}")
             self.log_manager.log_shipment(pdf_path, email, "fallido")
             return False
     
@@ -578,10 +578,10 @@ class EmailProcessor:
             success, result = self.email_sender.send_email(message, self.config_manager.admin_email)
             
             if success:
-                logging.info(f"✅ Reporte enviado al administrador: {self.config_manager.admin_email}")
+                logging.info(f"Reporte enviado al administrador: {self.config_manager.admin_email}")
                 self.log_manager.log_daily(f"Reporte enviado al administrador: {self.config_manager.admin_email}")
             else:
-                logging.error(f"❌ Error enviando reporte al administrador: {result}")
+                logging.error(f"Error enviando reporte al administrador: {result}")
                 self.log_manager.log_daily(f"Error enviando reporte al administrador: {result}")
         
         except Exception as e:
@@ -620,10 +620,10 @@ def main():
         logging.info("Proceso interrumpido por el usuario")
         sys.exit(130)
     except FileNotFoundError as e:
-        print(f"❌ Error de configuración: {e}")
+        print(f"Error de configuracion: {e}")
         sys.exit(1)
     except ValueError as e:
-        print(f"❌ Error de configuración: {e}")
+        print(f"Error de configuracion: {e}")
         sys.exit(1)
     except Exception as e:
         logging.error(f"Error fatal en el sistema: {str(e)}")

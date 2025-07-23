@@ -93,8 +93,6 @@ def generar_lote_compras(num_compras=10, archivo_salida=None):
     compras = []
     errores = []
     
-    print(f"Generando {num_compras} compras simuladas...")
-    
     for i in range(num_compras):
         try:
             compra = generar_compra()
@@ -117,14 +115,14 @@ def generar_lote_compras(num_compras=10, archivo_salida=None):
             writer.writeheader()
             writer.writerows(compras)
         
-        print(f"\n✅ {len(compras)} compras guardadas en {archivo_salida}")
+        print(f"\n{len(compras)} compras guardadas en {archivo_salida}")
     
     # Guardar errores si los hay
     if errores:
         archivo_errores = f'errores_{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}.log'
         with open(archivo_errores, 'w', encoding='utf-8') as f:
             f.write('\n'.join(errores))
-        print(f"⚠️  {len(errores)} errores guardados en {archivo_errores}")
+        print(f"WARNING: {len(errores)} errores guardados en {archivo_errores}")
     
     return archivo_salida, len(compras), len(errores)
 
@@ -178,7 +176,7 @@ def generar_empleados_ejemplo():
         writer.writeheader()
         writer.writerows(empleados)
     
-    print(f"✅ Archivo empleados.csv generado con {len(empleados)} empleados de ejemplo")
+    print(f"Archivo empleados.csv generado con {len(empleados)} empleados de ejemplo")
 
 if __name__ == "__main__":
     main()
