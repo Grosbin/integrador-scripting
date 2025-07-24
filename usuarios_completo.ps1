@@ -1,5 +1,5 @@
-# Sistema de Gestión de Usuarios Temporales
-# Crea cuentas de usuario locales desde archivo CSV para temporadas altas
+# Sistema de Gestión de Usuarios (Temporales y Regulares)
+# Crea cuentas de usuario locales desde archivo CSV
 
 param(
     [string]$CsvFile = "datos\empleados.csv",
@@ -26,11 +26,11 @@ function Write-Log {
 function New-SecurePassword {
     param([int]$Length = 12)
     
-    # Caracteres permitidos para contraseña usando expresiones regulares
-    $lowercase = [regex]::Matches("abcdefghijklmnopqrstuvwxyz", "[a-z]") | ForEach-Object { $_.Value } | Join-String
-    $uppercase = [regex]::Matches("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "[A-Z]") | ForEach-Object { $_.Value } | Join-String  
-    $numbers = [regex]::Matches("0123456789", "\d") | ForEach-Object { $_.Value } | Join-String
-    $symbols = [regex]::Matches("!@#$%^&*", "[!@#$%^&*]") | ForEach-Object { $_.Value } | Join-String
+    # Caracteres permitidos para contraseña
+    $lowercase = "abcdefghijklmnopqrstuvwxyz"
+    $uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    $numbers = "0123456789"
+    $symbols = "!@#$%^&*"
     
     # Asegurar que la contraseña tenga al menos un carácter de cada tipo
     $password = ""
@@ -60,6 +60,28 @@ function Test-EmailFormat {
     return $Email -match $emailRegex
 }
 
+# Función para determinar tipo de usuario
+function Get-UserType {
+    param(
+        [string]$TipoContrato,
+        [string]$TipoUsuario = ""
+    )
+    
+    # Si hay campo tipo_usuario, usarlo
+    if ($TipoUsuario -and $TipoUsuario -ne "") {
+        return $TipoUsuario.ToLower()
+    }
+    
+    # Si no, usar tipo_contrato
+    switch ($TipoContrato.ToLower()) {
+        "temporal" { return "temporal" }
+        "permanente" { return "regular" }
+        "indefinido" { return "regular" }
+        "fijo" { return "regular" }
+        default { return "temporal" }  # Por defecto temporal
+    }
+}
+
 # Función para crear usuario local
 function New-LocalEmployee {
     param(
@@ -67,7 +89,8 @@ function New-LocalEmployee {
         [string]$Email,
         [string]$Department,
         [string]$Password,
-        [bool]$IsAdmin = $false
+        [bool]$IsAdmin = $false,
+        [string]$UserType = "temporal"
     )
     
     try {
@@ -82,7 +105,14 @@ function New-LocalEmployee {
             $username = $username.Substring(0, 20)
         }
         
-        Write-Log "Creando usuario: $username ($FullName)"
+        # Determinar descripción según tipo de usuario
+        $description = if ($UserType -eq "temporal") {
+            "Empleado temporal - $Department"
+        } else {
+            "Empleado regular - $Department"
+        }
+        
+        Write-Log "Creando usuario: $username ($FullName) - Tipo: $UserType"
         
         if ($DryRun) {
             Write-Log "DRY RUN: Usuario $username sería creado" "INFO"
@@ -90,6 +120,7 @@ function New-LocalEmployee {
                 Success = $true
                 Username = $username
                 Password = $Password
+                UserType = $UserType
             }
         }
         
@@ -100,17 +131,20 @@ function New-LocalEmployee {
             
             # Actualizar contraseña
             $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
-            Set-LocalUser -Name $username -Password $securePassword -FullName $FullName
+            Set-LocalUser -Name $username -Password $securePassword -FullName $FullName -Description $description
             
         } catch [Microsoft.PowerShell.Commands.UserNotFoundException] {
             # Usuario no existe, crear nuevo
             $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
             
+            # Configurar propiedades según tipo de usuario
+            $passwordNeverExpires = if ($UserType -eq "temporal") { $true } else { $false }
+            
             New-LocalUser -Name $username `
                          -Password $securePassword `
                          -FullName $FullName `
-                         -Description "Empleado temporal - $Department" `
-                         -PasswordNeverExpires:$true `
+                         -Description $description `
+                         -PasswordNeverExpires:$passwordNeverExpires `
                          -UserMayNotChangePassword:$false
         }
         
@@ -137,6 +171,7 @@ function New-LocalEmployee {
             Success = $true
             Username = $username
             Password = $Password
+            UserType = $UserType
         }
         
     } catch {
@@ -145,6 +180,7 @@ function New-LocalEmployee {
             Success = $false
             Username = $username
             Error = $_.Exception.Message
+            UserType = $UserType
         }
     }
 }
@@ -170,6 +206,8 @@ function Process-EmployeeCsv {
         
         $successCount = 0
         $errorCount = 0
+        $temporalCount = 0
+        $regularCount = 0
         $results = @()
         
         foreach ($employee in $employees) {
@@ -187,6 +225,9 @@ function Process-EmployeeCsv {
                 continue
             }
             
+            # Determinar tipo de usuario
+            $tipoUsuario = Get-UserType -TipoContrato $employee.tipo_contrato -TipoUsuario $employee.tipo_usuario
+            
             # Generar contraseña
             $password = New-SecurePassword
             
@@ -198,10 +239,16 @@ function Process-EmployeeCsv {
                                        -Email $employee.correo `
                                        -Department $employee.departamento `
                                        -Password $password `
-                                       -IsAdmin $isAdmin
+                                       -IsAdmin $isAdmin `
+                                       -UserType $tipoUsuario
             
             if ($result.Success) {
                 $successCount++
+                if ($tipoUsuario -eq "temporal") {
+                    $temporalCount++
+                } else {
+                    $regularCount++
+                }
                 
                 # Agregar resultado para reporte
                 $results += [PSCustomObject]@{
@@ -209,6 +256,7 @@ function Process-EmployeeCsv {
                     Usuario = $result.Username
                     Email = $employee.correo
                     Departamento = $employee.departamento
+                    TipoUsuario = $tipoUsuario
                     Password = $result.Password
                     EsAdmin = $isAdmin
                     Estado = "Creado"
@@ -221,6 +269,7 @@ function Process-EmployeeCsv {
                     Usuario = $result.Username
                     Email = $employee.correo
                     Departamento = $employee.departamento
+                    TipoUsuario = $tipoUsuario
                     Password = ""
                     EsAdmin = $isAdmin
                     Estado = "Error: $($result.Error)"
@@ -235,6 +284,8 @@ function Process-EmployeeCsv {
         Write-Log "[INFO] Reporte generado: $reportFile"
         Write-Log "=== RESUMEN ==="
         Write-Log "[OK] Usuarios creados exitosamente: $successCount"
+        Write-Log "[INFO] Usuarios temporales: $temporalCount"
+        Write-Log "[INFO] Usuarios regulares: $regularCount"
         Write-Log "[ERROR] Errores: $errorCount"
         Write-Log "[INFO] Total procesados: $($successCount + $errorCount)"
         
@@ -249,22 +300,32 @@ function Process-EmployeeCsv {
 # Función para mostrar usuarios existentes
 function Show-ExistingUsers {
     try {
-        $localUsers = Get-LocalUser | Where-Object { $_.Description -like "*Empleado temporal*" }
+        $temporalUsers = Get-LocalUser | Where-Object { $_.Description -like "*Empleado temporal*" }
+        $regularUsers = Get-LocalUser | Where-Object { $_.Description -like "*Empleado regular*" }
         
-        if ($localUsers.Count -gt 0) {
+        if ($temporalUsers.Count -gt 0) {
             Write-Log "[INFO] Usuarios temporales existentes:"
-            foreach ($user in $localUsers) {
+            foreach ($user in $temporalUsers) {
                 Write-Log "   - $($user.Name) ($($user.FullName))"
             }
-        } else {
-            Write-Log "[INFO] No hay usuarios temporales existentes"
+        }
+        
+        if ($regularUsers.Count -gt 0) {
+            Write-Log "[INFO] Usuarios regulares existentes:"
+            foreach ($user in $regularUsers) {
+                Write-Log "   - $($user.Name) ($($user.FullName))"
+            }
+        }
+        
+        if ($temporalUsers.Count -eq 0 -and $regularUsers.Count -eq 0) {
+            Write-Log "[INFO] No hay usuarios creados por este sistema"
         }
     } catch {
         Write-Log "[WARNING] No se pudieron listar usuarios existentes: $($_.Exception.Message)" "WARNING"
     }
 }
 
-# Función para limpiar usuarios temporales antiguos
+# Función para limpiar usuarios temporales antiguos (solo temporales)
 function Remove-OldTemporaryUsers {
     param([int]$DaysOld = 30)
     
@@ -282,19 +343,19 @@ function Remove-OldTemporaryUsers {
                 if (-not $DryRun) {
                     Remove-LocalUser -Name $user.Name -Confirm:$false
                 }
-                Write-Log "[INFO] Usuario eliminado: $($user.Name)"
+                Write-Log "[INFO] Usuario temporal eliminado: $($user.Name)"
             }
         } else {
             Write-Log "[INFO] No hay usuarios temporales antiguos para eliminar"
         }
     } catch {
-        Write-Log "[WARNING] Error eliminando usuarios antiguos: $($_.Exception.Message)" "WARNING"
+        Write-Log "[WARNING] Error eliminando usuarios temporales antiguos: $($_.Exception.Message)" "WARNING"
     }
 }
 
 # Función principal
 function Main {
-    Write-Log "=== INICIO DE GESTIÓN DE USUARIOS TEMPORALES ==="
+    Write-Log "=== INICIO DE GESTIÓN DE USUARIOS ==="
     
     # Verificar permisos de administrador
     if (-not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
@@ -312,10 +373,10 @@ function Main {
     # Procesar archivo CSV
     $success = Process-EmployeeCsv -FilePath $CsvFile
     
-    # Limpiar usuarios antiguos
+    # Limpiar usuarios temporales antiguos (solo temporales)
     Remove-OldTemporaryUsers -DaysOld 30
     
-    Write-Log "=== FIN DE GESTIÓN DE USUARIOS TEMPORALES ==="
+    Write-Log "=== FIN DE GESTIÓN DE USUARIOS ==="
     
     if ($success) {
         Write-Log "[OK] Proceso completado exitosamente"
@@ -333,4 +394,4 @@ trap {
 }
 
 # Ejecutar función principal
-Main
+Main 
